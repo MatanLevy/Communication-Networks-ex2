@@ -1,6 +1,6 @@
 #include "AuxiliaryServer.h"
-using namespace std;
 
+using namespace std;
 
 void connectToClient(int& serverSocket, int portNumber) {
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -72,16 +72,21 @@ void handleCommand(int socket, char* message, Server& server, string userName) {
 			server.findUser(userName)->deleteMail(id);
 		} else if (command[0] == "MSG") {
 			string destName = command[1];
-			string text = split((string) message,':')[1];
+			if (destName[destName.length() - 1] == ':') {
+				destName.pop_back();
+			}
+			string msgstr = (string) message;
+			string text = msgstr.substr(msgstr.find(":")+1);
+			//string text = split((string) message, ':')[1];
 			vector<string> onlineUsers = server.getOnlineUsers();
 			if (std::find(onlineUsers.begin(), onlineUsers.end(), destName)
 					!= onlineUsers.end()) {
 				string msg = "New message from " + userName + " : " + text;
 				int socketToSend = server.findSocketID(destName);
-				sendAllData(socketToSend,msg);
-			}
-			else {
-				server.compose(userName,vector<string>(1,destName),"Message received offline",text);
+				sendAllData(socketToSend, msg);
+			} else {
+				server.compose(userName, vector<string> (1, destName),
+						"Message received offline", text);
 			}
 		}
 	}
